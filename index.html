@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Summarizer</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #121212; color: white; }
+        textarea, input { width: 100%; margin-bottom: 10px; padding: 10px; border-radius: 5px; border: 1px solid #333; background: #1e1e1e; color: white; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; background: #0070f3; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        #status { margin-top: 15px; font-size: 0.9em; color: #aaa; }
+    </style>
+</head>
+<body>
+    <h3>Web3 Summarizer</h3>
+    <input type="text" id="title" placeholder="Title (Optional)">
+    <textarea id="content" rows="8" placeholder="Paste content here..."></textarea>
+    <button id="btn" onclick="send()">Send to Notion</button>
+    <div id="status"></div>
+
+    <script>
+        async function send() {
+            const btn = document.getElementById('btn');
+            const status = document.getElementById('status');
+            btn.disabled = true;
+            status.innerText = "Processing...";
+
+            try {
+                const res = await fetch('/summarize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content: document.getElementById('content').value,
+                        title: document.getElementById('title').value,
+                        category: "General"
+                    })
+                });
+                const data = await res.json();
+                status.innerText = data.status === "success" ? "✅ Success! Added to Notion." : "❌ Error: " + JSON.stringify(data);
+            } catch (e) {
+                status.innerText = "❌ Failed to connect.";
+            } finally {
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -10,7 +10,7 @@ class SummarizeRequest(BaseModel):
     title: str = None
     category: str = "General"
 
-    
+
 # JANGAN pake load_dotenv() di Vercel
 app = FastAPI()
 
@@ -26,6 +26,14 @@ app.add_middleware(
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 # Tambahkan route "/" biar Vercel gak bingung pas lo akses URL utama
+
+@app.get("/", response_class=HTMLResponse)
+async def root():
+    # Ini bakal baca file index.html yang lu bikin tadi
+    path = os.path.join(os.path.dirname(__file__), "..", "index.html")
+    with open(path, "r") as f:
+        return f.read()
+        
 @app.get("/")
 async def root():
     return {"status": "Backend Live"}
