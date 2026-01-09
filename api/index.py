@@ -2,13 +2,16 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 import os, requests
 from openai import OpenAI
-from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 
-load_dotenv()
+class SummarizeRequest(BaseModel):
+    content: str
+    title: str = None
+    category: str = "General"
 
-# Vercel akan mencari variabel 'app' ini
+    
+# JANGAN pake load_dotenv() di Vercel
 app = FastAPI()
 
 app.add_middleware(
@@ -19,16 +22,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Ambil langsung dari Env Vercel
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
-class SummarizeRequest(BaseModel):
-    content: str
-    title: str = None
-    category: str = "Web3"
-
+# Tambahkan route "/" biar Vercel gak bingung pas lo akses URL utama
 @app.get("/")
 async def root():
-    return {"status": "Autonomous AI API is running"}
+    return {"status": "Backend Live"}
 
 @app.post("/summarize")
 async def handle_summarize(req: SummarizeRequest):
