@@ -16,13 +16,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Model untuk validasi data
 class SummarizeRequest(BaseModel):
     content: str
     title: str = None
-    category: str = "General"
+    category: str = "Web3"
 
-# Client OpenAI
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 @app.get("/", response_class=HTMLResponse)
@@ -38,7 +36,7 @@ async def root():
             body { font-family: -apple-system, sans-serif; padding: 20px; background: #000; color: #fff; display: flex; flex-direction: column; align-items: center; }
             .container { width: 100%; max-width: 500px; }
             h3 { text-align: center; color: #0070f3; }
-            textarea, input { width: 100%; margin-bottom: 15px; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #111; color: #fff; box-sizing: border-box; font-size: 16px; }
+            textarea, input, select { width: 100%; margin-bottom: 15px; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #111; color: #fff; box-sizing: border-box; font-size: 16px; }
             button { width: 100%; padding: 16px; background: #0070f3; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
             button:disabled { background: #333; cursor: not-allowed; }
             #status { margin-top: 20px; text-align: center; font-size: 0.9em; color: #888; }
@@ -48,6 +46,13 @@ async def root():
         <div class="container">
             <h3>Web3 Summarizer</h3>
             <input type="text" id="title" placeholder="Title (Optional)">
+            
+            <label style="display:block; margin-bottom:5px; font-size:0.8em; color:#888;">Category:</label>
+            <select id="category">
+                <option value="Web3">Web3</option>
+                <option value="Wisdom">Wisdom</option>
+            </select>
+
             <textarea id="content" rows="10" placeholder="Paste content here..."></textarea>
             <button id="btn" onclick="send()">Send to Notion</button>
             <div id="status"></div>
@@ -58,6 +63,8 @@ async def root():
                 const btn = document.getElementById('btn');
                 const status = document.getElementById('status');
                 const content = document.getElementById('content').value;
+                const category = document.getElementById('category').value;
+                
                 if(!content) { alert("Paste content first!"); return; }
                 
                 btn.disabled = true;
@@ -70,7 +77,7 @@ async def root():
                         body: JSON.stringify({
                             content: content,
                             title: document.getElementById('title').value,
-                            category: "General"
+                            category: category
                         })
                     });
                     const data = await res.json();
@@ -146,6 +153,5 @@ async def handle_summarize(req: SummarizeRequest):
                 "paragraph": {"rich_text": [{"text": {"content": summary}}]}}
         ]
     }
-    
     res = requests.post("https://api.notion.com/v1/pages", headers=headers, json=data)
     return {"status": "success", "notion_res": res.json()}
